@@ -10,3 +10,6 @@
 !run_rf_10k_nopc_1thread.sh
 !export_rf_mean_excel.py
 !annotate_rf_hg19.py
+
+!METHODS.md
+!PARAMETERS.md

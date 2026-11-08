@@ -2,6 +2,8 @@
 
 8 Kasım 2026 tarihli PC'siz RF, eşik üstü Excel ve hg19 gen anotasyonu akışı.
 
+Proje taslağı için: [RF yöntem metni](METHODS.md) ve [parametrelerin açıklamaları](PARAMETERS.md). Bu belgeler güncel kodu, seçim gerekçelerini ve yorum sınırlarını açıklar.
+
 | Sıra | Dosya | İşlem |
 |---|---|---|
 | 1 | `run_rf_10k_nopc_1thread.sh` | 22 otozomu sırayla işler ve genom çapındaki son modeli kurar. |
@@ -81,4 +83,4 @@ Python 3.8 sözdizimi ve Bash sözdizimi kontrolleri yapılır; anotasyonda `str
 
 RF importance p-değeri değildir. Son model tüm SNP'leri aynı anda değil, blok finalistlerini kullanır. Aday seçimi tüm bireyleri kullandığından kromozom OOB metrikleri bağımsız test başarısı sayılmaz.
 
-Genotip, birey kimliği, fenotip tabloları, referanslar ve sonuçlar Git'e eklenmez. GWAS betiklerinin tam kaynakları bu klasörde henüz yoktur.
+Genotip, birey kimliği, fenotip tabloları, referanslar ve sonuçlar Git'e eklenmez. GWAS kodları ve yöntem açıklaması ayrı klasördedir: [tuseb-gwas](../tuseb-gwas/README.md). GWAS PC1–PC5 kullanır; güncel RF PC kullanmaz.
