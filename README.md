@@ -2,6 +2,8 @@
 
 ## TÜSEB
 
-PC kullanmayan Random Forest analiz kodu ve çalıştırma bilgileri: [tuseb-rf](tuseb-rf/README.md).
+- [GWAS PC5 kodları, çalıştırma sırası ve kaynak bilgisi](tuseb-gwas/README.md)
+- [Proje taslağı için GWAS yöntem metni](tuseb-gwas/METHODS.md)
+- [PC kullanmayan güncel RF kodları ve çalıştırma bilgileri](tuseb-rf/README.md)
 
-Bu depo genotip veya birey düzeyinde veri içermez.
+GWAS PC1–PC5 kullanır; güncel RF PC kullanmaz. Bu depo genotip veya birey düzeyinde veri içermez.

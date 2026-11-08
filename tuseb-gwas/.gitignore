@@ -1,0 +1,13 @@
+# Yalnızca kod ve yöntem belgeleri sürümlenir.
+*
+!.gitignore
+!README.md
+!METHODS.md
+!requirements.txt
+!SOURCE_SHA256SUMS
+!01_prepare_allchr.sh
+!02_merge_and_gwas_allchr.sh
+!03_combine_allchr_results.sh
+!05_gwas_chr_ozet.py
+!historical/
+!historical/04_annotate_gwas_rf_excel.py

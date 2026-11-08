@@ -1,0 +1,5 @@
+# Bash içindeki Python: 01 hazırlamada pandas, 03 birleştirmede stdlib.
+pandas
+# Tarihsel Excel/gen anotasyonu için:
+numpy
+openpyxl
