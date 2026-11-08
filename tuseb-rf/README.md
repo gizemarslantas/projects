@@ -1,45 +1,84 @@
-# TÜSEB — PC kullanmayan Random Forest
+# TÜSEB — NAS'ta kullanılan güncel RF kodları
 
-Mevcut analiz kodunun sürüm kontrolü için başlangıç kopyasıdır. Üç kaynak betik değiştirilmeden alınmıştır. Genotip, birey kimliği, fenotip tablosu, kovaryat veya analiz sonucu içermez.
+8 Kasım 2026 tarihli PC'siz RF, eşik üstü Excel ve hg19 gen anotasyonu akışı.
 
-## Analiz
+| Sıra | Dosya | İşlem |
+|---|---|---|
+| 1 | `run_rf_10k_nopc_1thread.sh` | 22 otozomu sırayla işler ve genom çapındaki son modeli kurar. |
+| 1a | `rf_rank_chr_nopc.py` | Blok taraması ve kromozom RF modeli. |
+| 1b | `rf_combine_allchr_nopc.py` | Adayları birleştirip son RF sıralamasını oluşturur. |
+| 2 | `export_rf_mean_excel.py` | Ortalama importance'ın kesin olarak üzerindeki SNP'leri Excel'e çıkarır. |
+| 3 | `annotate_rf_hg19.py` | Gen, örtüşme/yakınlık, mesafe, biyotip ve Ensembl kimliği ekler. |
 
-- Otozomlar (1–22) sırayla işlenir.
-- PHENO=1 kontrol; PHENO=2 olgu. Modelde 0/1 olarak kodlanır.
-- PC okunmaz, modele eklenmez ve genotiplerden PC etkisi çıkarılmaz. Kodda kalan PC değişkenleri sıfır sütunlu matrislerdir.
-- Blok boyutu 10.000 SNP; blok başına 50 ağaç ve en fazla 50 aday SNP.
-- Kromozom son modeli 1.000 ağaç; genom çapında aday modeli 2.000 ağaç.
-- Sonuç tüm SNP'leri aynı anda kullanan tek bir RF değil, bloklardan seçilen adaylarla kurulan modellerdir.
+Eski `run_rf_nopc.sh` komutu da aynı güncel tek iş parçacıklı başlatıcıya yönlenir. Önceki dört iş parçacıklı başlatıcı Git geçmişinde kalır.
 
-## Girdiler (NAS üzerinde kalır)
+## Analiz ayarları
 
-`--base` klasörü altında:
+- PC okunmaz, modele eklenmez ve genotiplerden PC etkisi çıkarılmaz. Kalan PC değişkenleri sıfır sütunlu matrislerdir.
+- PHENO=1 kontrol, PHENO=2 olgu; modelde sırasıyla 0 ve 1.
+- Blok: 10.000 SNP, 50 ağaç, en fazla 50 aday.
+- Kromozom modeli: 1.000 ağaç. Genom modeli: 2.000 ağaç. Minimum yaprak: 5.
+- Başlatıcı `--threads 1` kullanır; sayısal kütüphanelerin iş parçacıkları da 1 ile sınırlandırılır.
+- Kromozom seed'i 40417, genom modeli seed'i 4042201.
 
-```text
-SLD_EA_c2.pheno.tsv
-per_chr/chr1/SLD_EA_chr1_merged.pgen
-per_chr/chr1/SLD_EA_chr1_merged.pvar
-per_chr/chr1/SLD_EA_chr1_merged.psam
-... chr22 için aynı yapı ...
-```
+Python RF dosyaları değiştirilmemiştir; doğrudan çağrıldıklarında eski `--threads 4` varsayılanları vardır. Güncel başlatıcıyı kullanın veya doğrudan çağrıda `--threads 1` verin.
 
-Fenotip tablosunda IID ve PHENO sütunları gerekir. IID benzersiz olmalı; kromozomların birey sırası aynı olmalıdır.
+## NAS'ta çalıştırma
 
-## Kurulum ve çalıştırma
+Kod klasöründe:
 
 ```bash
-python3 -m pip install -r requirements.txt
-bash run_rf_nopc.sh /path/to/analysis_base
+python3 -m pip install --user -r requirements.txt
+ANALYSIS_BASE="/volume1/homes/tuseb/new_data_to_be_used/Kasım/yardimci_dosya_adaylari/GWAS_404_vs_SLD_allchr"
 ```
 
-Başlatıcıya Kasım içindeki analiz klasörünü açıkça verin; mevcut varsayılan yol eski analiz klasörüdür. Başlatıcı yeni, zaman damgalı sonuç klasörü oluşturur.
+Bu klasörde `SLD_EA_c2.pheno.tsv` ve 1–22 kromozomları için `per_chr/chrN/SLD_EA_chrN_merged.pgen/.pvar/.psam` bulunmalıdır. Fenotip tablosunda IID ve PHENO gerekir. IID benzersiz, kromozomların birey sırası aynı olmalıdır.
 
-## Kaydedilen sürümün sınırları
+### 1. Yalnızca yeni RF analizi başlatılacaksa
 
-- Başlatıcı ve Python varsayılanları 4 iş parçacığı kullanır; bu kopya 2 GB RAM için doğrulanmamıştır. Genom çapında aday matrisi bellekte tutulur.
-- Bağımlılık sürümleri bilinmediği için requirements.txt sabitlenmemiştir. NAS ortamındaki gerçek sürümler ayrıca kaydedilmelidir.
-- OOB metrikleri aday seçiminden bağımsız bir test değerlendirmesi değildir; aday seçimi aynı bireylerden yapılır.
-- Yerelde yalnızca Python sözdizimi ve Bash sözdizimi kontrol edilmiştir; gerçek veriyle model çalıştırılmamıştır.
-- GWAS betiklerinin tam kaynakları bu pakette yoktur; ayrıca eklenmelidir.
+```bash
+RF_LOG="rf_launcher_$(date +%Y%m%d_%H%M%S)_$$.log"
+nohup bash run_rf_10k_nopc_1thread.sh "$ANALYSIS_BASE" > "$RF_LOG" 2>&1 &
+echo "PID: $! | Log: $RF_LOG"
+```
 
-`SOURCE_SHA256SUMS`, değiştirilmeden alınan üç betiğin SHA-256 özetlerini içerir. Bu değerler NAS kopyalarıyla karşılaştırılarak aynı sürüm oldukları doğrulanabilir.
+Girdi klasöründe `RF_noPC_10k_<tarih>_<saat>_<PID>` oluşturulur. Kullanılan iki Python dosyası da sonuç klasörüne kopyalanır.
+
+### 2. Tamamlanmış sonuçtan Excel
+
+Aşağıdaki yol tamamlanmış mevcut çalışmaya aittir. Yeni analizde `RUN_DIR` değerini değiştirin. Excel oluşturmak için RF'yi yeniden başlatmayın.
+
+```bash
+RUN_DIR="$ANALYSIS_BASE/RF_noPC_10k_20261108_181230_4597"
+python3 export_rf_mean_excel.py --combined "$RUN_DIR/combined"
+```
+
+Exporter bu çalışmadaki 30.550 adayı ve importance toplamının 1 olduğunu doğrular. Filtre: `GENOME_RF_IMPORTANCE > ortalama` (yaklaşık 0,000032733224). Farklı aday sayılı yeni analizde sayı kontrolü bilinçli olarak güncellenmelidir.
+
+### 3. Gen anotasyonu
+
+`--input` olarak ikinci adımın yazdırdığı Excel yolunu kullanın. Örnek, son kullanılan dosyadır:
+
+```bash
+python3 annotate_rf_hg19.py \
+  --base "$ANALYSIS_BASE" \
+  --input "$RUN_DIR/combined/RF_ortalama_ustu_SNPler_20261108_221824_581056.xlsx" \
+  --reference "/volume1/homes/tuseb/new_data_to_be_used/GWAS_404_vs_SLD_allchr/reference/Homo_sapiens.GRCh37.87.gtf.gz"
+```
+
+Girdi Excel'inde `SNPler` sayfası gerekir. Yeni, zaman damgalı Excel girdi dosyasının yanına kaydedilir. RF yeniden çalıştırılmaz. `--reference` verilmezse bilinen NAS yolları aranır; dosya yoksa Ensembl'den indirilir.
+
+- `overlap`: SNP gen gövdesinin içinde, intronlar dahil; mesafe 0.
+- `nearest`: gen dışında; en yakın gen sınırına baz çifti uzaklığı.
+- Tüm biyotipler kullanılır; çoklu örtüşmeler/eşit uzaklıklar birlikte yazılır.
+- Gen adları Ensembl GRCh37 release 87 (hg19) sürümündendir. Yakınlık işlevsel etki kanıtı değildir.
+
+## Sürüm ve doğrulama
+
+Sohbetteki son kodlar dosyalara ayrılmış; giriş yolları komut satırı seçenekleriyle belirtilebilir hale getirilmiştir. RF algoritması ve model ayarları değiştirilmemiştir. `SOURCE_SHA256SUMS` altı güncel analiz/çalıştırma dosyasının özetlerini içerir.
+
+Python 3.8 sözdizimi ve Bash sözdizimi kontrolleri yapılır; anotasyonda `str.removeprefix()` kullanılmaz. Excel eşiği kontrollü sentetik veride, gen anotasyonu sağlanan RF listesi ve GRCh37.87 referansında yerelde doğrulanır. NAS'ta RF yeniden çalıştırılmamıştır; 2 GB tepe bellek garantisi yoktur. Bağımlılık sürümleri NAS ortamından henüz sabitlenmemiştir.
+
+RF importance p-değeri değildir. Son model tüm SNP'leri aynı anda değil, blok finalistlerini kullanır. Aday seçimi tüm bireyleri kullandığından kromozom OOB metrikleri bağımsız test başarısı sayılmaz.
+
+Genotip, birey kimliği, fenotip tabloları, referanslar ve sonuçlar Git'e eklenmez. GWAS betiklerinin tam kaynakları bu klasörde henüz yoktur.
