@@ -1,0 +1,9 @@
+# Yalnızca aşağıdaki kod ve belgeler sürümlenir.
+*
+!.gitignore
+!README.md
+!requirements.txt
+!SOURCE_SHA256SUMS
+!rf_rank_chr_nopc.py
+!rf_combine_allchr_nopc.py
+!run_rf_nopc.sh
